@@ -1,0 +1,21 @@
+{
+  "name": "payfast",
+  "version": "1.0.0",
+  "description": "Gateway para pagamentos usando http",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gateway",
+    "pagamento",
+    "api",
+    "nodejs"
+  ],
+  "author": "Marco Franco",
+  "license": "ISC",
+  "dependencies": {
+    "consign": "^0.1.6",
+    "express": "^4.15.4"
+  }
+}
