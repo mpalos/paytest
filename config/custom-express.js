@@ -12,8 +12,8 @@ module.exports = function(){
 
     consign()
         .include('routes')
+        .then('persistence')
         .into(app);
-
     return(app);
 }
 
