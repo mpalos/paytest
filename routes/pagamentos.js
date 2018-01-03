@@ -5,6 +5,52 @@ module.exports = function(app){
         res.send('OK.');
     });
 
+    app.put('/pagamentos/pagamento/:id', function (req, res){
+
+        var pagamento = {};
+        var id = req.params.id;
+
+        pagamento.id = id;
+        pagamento.status = "CONFIRMADO";
+
+        var connection = app.persistence.connectionFactory();
+        var pagamentoDAO = new app.persistence.pagamentoDAO(connection);
+        
+        //Implantação da função atualiza
+        pagamentoDAO.update(pagamento, function(erro){
+            if(erro) {
+                res.status(500).send(erro);
+                return;
+            }
+            res.send(pagamento);
+
+        });
+
+    });
+
+    app.delete('/pagamentos/pagamento/:id', function (req, res){
+        
+                var pagamento = {};
+                var id = req.params.id;
+        
+                pagamento.id = id;
+                pagamento.status = "CANCELADO";
+        
+                var connection = app.persistence.connectionFactory();
+                var pagamentoDAO = new app.persistence.pagamentoDAO(connection);
+                
+                //Implantação da função atualiza
+                pagamentoDAO.update(pagamento, function(erro){
+                    if(erro) {
+                        res.status(500).send(erro);
+                        return;
+                    }
+                    res.status(204).send(pagamento);
+        
+                });
+        
+            });        
+
     app.post('/pagamentos/pagamento', function(req,res){
         var pagamento = req.body;
 
@@ -35,7 +81,27 @@ module.exports = function(app){
                         res.location('/pagamentos/pagamento/' + result.insertId);
                         pagamento.id = result.insertId;
 
-                        res.status(201).json(pagamento);
+                        var response = {
+                            dados_do_pagamento: pagamento,
+                            links: [
+                                {
+                                    href: "http://localhost:3000/pagamentos/pagamento/"
+                                            + pagamento.id,
+                                    rel: "confirmar",
+                                    method: "PUT"
+                                },
+                                {
+                                    href: "http://localhost:3000/pagamentos/pagamento/"
+                                            + pagamento.id,
+                                    rel: "cancelar",
+                                    method: "DELETE"
+                                }
+
+                            ]
+                        }
+
+                        res.status(201).json(response);
+
                     });
         }
     });

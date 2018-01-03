@@ -6,6 +6,10 @@ pagamentoDAO.prototype.save = function (pagamento, callback) {
     this._connection.query('INSERT INTO pagamentos SET ?', pagamento, callback);
 }
 
+pagamentoDAO.prototype.update = function (pagamento, callback) {
+    this._connection.query('UPDATE pagamentos SET status = ? WHERE id = ?', [pagamento.status, pagamento.id], callback);
+}
+
 pagamentoDAO.prototype.list = function (callback){
     this._connection.query('select * from pagamentos',callback);
 }
