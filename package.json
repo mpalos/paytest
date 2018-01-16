@@ -19,6 +19,10 @@
     "consign": "^0.1.6",
     "express": "^4.15.4",
     "express-validator": "^4.3.0",
-    "mysql": "^2.15.0"
+    "mysql": "^2.15.0",
+    "nodemon": "^1.14.11",
+    "restify": "^6.3.4",
+    "to": "^0.2.9",
+    "update": "^0.7.4"
   }
 }
