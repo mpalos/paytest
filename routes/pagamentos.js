@@ -4,6 +4,7 @@ module.exports = function(app){
         res.send('OK.');
     });
 
+    //Atualização
     app.put('/pagamentos/pagamento/:id', function (req, res){
 
         var pagamento = {};
@@ -27,6 +28,7 @@ module.exports = function(app){
 
     });
 
+    //Remoção do recurso (lógico: não remove na tabela, só muda o status)
     app.delete('/pagamentos/pagamento/:id', function (req, res){
         
                 var pagamento = {};
@@ -50,6 +52,7 @@ module.exports = function(app){
         
             });        
 
+    //Criação de um novo recurso
     app.post('/pagamentos/pagamento', function(req,res){
         var pagamento = req.body["pagamento"];
 
@@ -76,37 +79,57 @@ module.exports = function(app){
                         console.log('Erro ao inserir no banco: ' + errors);
                         res.status(500).send(errors);
                     } else {
+
                         pagamento.status = "CRIADO";
                         pagamento.data = new Date;
                 
                         pagamentoDAO.save(pagamento, function(exception, result){
                             console.log('Pagamento criado: ' + result);
-                            res.location('/pagamentos/pagamento/' + result.insertId);
-                            pagamento.id = result.insertId;
+
+
+                            if(pagamento.forma_de_pagamento == 'cartao'){
+                                var cartao = req.body["cartao"];
+                                console.log(cartao);
+
+                                //A chamada tem que ser igual ao nome do arquivo
+                                var clientesCartoes = new app.services.clientesCartoes();
+
+                                clientesCartoes.autoriza(cartao, 
+                                    function(error, request, response, retorno){
+                                        console.log(retorno);
+                                        res.status(201).json(retorno);
+                                        return;
+                                });
+
+                            } else{
+                                res.location('/pagamentos/pagamento/' + result.insertId);
+                                pagamento.id = result.insertId;
+        
+                                var response = {
+                                    dados_do_pagamento: pagamento,
+                                    links: [
+                                        {
+                                            href: "http://localhost:3000/pagamentos/pagamento/"
+                                                    + pagamento.id,
+                                            rel: "confirmar",
+                                            method: "PUT"
+                                        },
+                                        {
+                                            href: "http://localhost:3000/pagamentos/pagamento/"
+                                                    + pagamento.id,
+                                            rel: "cancelar",
+                                            method: "DELETE"
+                                        }
+        
+                                    ]
+                                }
+        
+                                res.status(201).json(response);
     
-                            var response = {
-                                dados_do_pagamento: pagamento,
-                                links: [
-                                    {
-                                        href: "http://localhost:3000/pagamentos/pagamento/"
-                                                + pagamento.id,
-                                        rel: "confirmar",
-                                        method: "PUT"
-                                    },
-                                    {
-                                        href: "http://localhost:3000/pagamentos/pagamento/"
-                                                + pagamento.id,
-                                        rel: "cancelar",
-                                        method: "DELETE"
-                                    }
-    
-                                ]
                             }
-    
-                            res.status(201).json(response);
-    
                         });
                     }
         }
     });
+
 };
