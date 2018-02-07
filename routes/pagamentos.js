@@ -92,13 +92,41 @@ module.exports = function(app){
                                 console.log(cartao);
 
                                 //A chamada tem que ser igual ao nome do arquivo
-                                var clientesCartoes = new app.services.clientesCartoes();
+                                var clienteCartoes = new app.services.clienteCartoes();
 
-                                clientesCartoes.autoriza(cartao, 
+                                clienteCartoes.autoriza(cartao,
                                     function(error, request, response, retorno){
-                                        console.log(retorno);
-                                        res.status(201).json(retorno);
+                                      if(error){
+                                        console.log(error);
+                                        res.status(400).send(error);
                                         return;
+                                      }
+                                      console.log(retorno);
+                        
+                                      res.location('/pagamentos/pagamento/' +
+                                            pagamento.id);
+                        
+                                      var response = {
+                                        dados_do_pagamanto: pagamento,
+                                        cartao: retorno,
+                                        links: [
+                                          {
+                                            href:"http://localhost:3000/pagamentos/pagamento/"
+                                                    + pagamento.id,
+                                            rel:"confirmar",
+                                            method:"PUT"
+                                          },
+                                          {
+                                            href:"http://localhost:3000/pagamentos/pagamento/"
+                                                    + pagamento.id,
+                                            rel:"cancelar",
+                                            method:"DELETE"
+                                          }
+                                        ]
+                                      }
+                        
+                                      res.status(201).json(response);
+                                      return;
                                 });
 
                             } else{
