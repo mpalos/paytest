@@ -103,12 +103,12 @@ module.exports = function(app){
                                       }
                                       console.log(retorno);
                         
-                                      res.location('/pagamentos/pagamento/' +
-                                            pagamento.id);
+                                      res.location('/pagamentos/pagamento/' + result.insertId);
+                                      pagamento.id = result.insertId;
                         
                                       var response = {
-                                        dados_do_pagamanto: pagamento,
-                                        cartao: retorno,
+                                          dados_do_pagamento: pagamento,
+                                          cartao: retorno,
                                         links: [
                                           {
                                             href:"http://localhost:3000/pagamentos/pagamento/"
