@@ -4,6 +4,10 @@ module.exports = function(app){
         res.send('OK.');
     });
 
+    const PAGAMENTO_CRIADO = "CRIADO";
+    const PAGAMENTO_CONFIRNADO = "CONFIRMADO";
+    const PAGAMENTO_CANCELADO = "CANCELADO";
+
     //Atualização
     app.put('/pagamentos/pagamento/:id', function (req, res){
 
@@ -11,7 +15,7 @@ module.exports = function(app){
         var id = req.params.id;
 
         pagamento.id = id;
-        pagamento.status = "CONFIRMADO";
+        pagamento.status = PAGAMENTO_CONFIRNADO;
 
         var connection = app.persistence.connectionFactory();
         var pagamentoDAO = new app.persistence.pagamentoDAO(connection);
@@ -35,7 +39,7 @@ module.exports = function(app){
                 var id = req.params.id;
         
                 pagamento.id = id;
-                pagamento.status = "CANCELADO";
+                pagamento.status = PAGAMENTO_CANCELADO;
         
                 var connection = app.persistence.connectionFactory();
                 var pagamentoDAO = new app.persistence.pagamentoDAO(connection);
@@ -80,7 +84,7 @@ module.exports = function(app){
                         res.status(500).send(errors);
                     } else {
 
-                        pagamento.status = "CRIADO";
+                        pagamento.status = PAGAMENTO_CRIADO;
                         pagamento.data = new Date;
                 
                         pagamentoDAO.save(pagamento, function(exception, result){
