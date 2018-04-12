@@ -8,6 +8,38 @@ module.exports = function(app){
     const PAGAMENTO_CONFIRNADO = "CONFIRMADO";
     const PAGAMENTO_CANCELADO = "CANCELADO";
 
+    //Listar
+    app.get('/pagamentos/pagamento/:id', function(req, res){
+        var id = req.params.id;
+        console.log('Consultando pagamento '+id);
+
+        var memcachedClient = app.services.memcachedClient();
+        memcachedClient.get('pagamento-'+id, function(err, ret){
+            if(err || !ret){
+                console.log('MISS - chave não encontrada');
+                var connection = app.persistence.connectionFactory();
+                var pagamentoDAO = new app.persistence.pagamentoDAO(connection);
+
+                pagamentoDAO.findById(id, function(erro, resultado){
+                    if(erro){
+                        console.log("Erro ao consultar");
+                        res.status(500).send(erro);
+                        return;
+                    }
+                    console.log('Pagamento encontrado: '+ JSON.stringify(resultado));
+                    res.json(resultado);
+                    return;
+                });
+            }
+            //ENCONTRADO NO CACHE
+            else {
+                console.log('HIT - valor: ' + JSON.stringify(ret));
+                res.json(ret);
+                return;
+            }
+        });
+    });
+
     //Atualização
     app.put('/pagamentos/pagamento/:id', function (req, res){
 
@@ -31,6 +63,8 @@ module.exports = function(app){
         });
 
     });
+
+    //TODO Atualização usando cache
 
     //Remoção do recurso (lógico: não remove na tabela, só muda o status)
     app.delete('/pagamentos/pagamento/:id', function (req, res){
@@ -88,7 +122,12 @@ module.exports = function(app){
                         pagamento.data = new Date;
                 
                         pagamentoDAO.save(pagamento, function(exception, result){
-                            console.log('Pagamento criado: ' + result);
+                            console.log('Pagamento criado: ' + JSON.stringify(pagamento));
+
+                            var memcachedClient = app.services.memcachedClient();
+                            memcachedClient.set('pagamento-'+result.insertId,pagamento, 60000, function(erro){
+                                console.log('Nova chave adicionada no cache: pagamento-'+pagamento.id)
+                            });
 
 
                             if(pagamento.forma_de_pagamento == 'cartao'){
