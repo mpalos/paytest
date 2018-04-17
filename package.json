@@ -20,12 +20,14 @@
     "express": "^4.15.4",
     "express-validator": "^4.3.0",
     "memcached": "^2.2.2",
+    "morgan": "^1.9.0",
     "mysql": "^2.15.0",
     "nodemon": "^1.14.11",
     "restify": "^6.3.4",
     "restify-clients": "^1.5.2",
     "soap": "^0.23.0",
     "to": "^0.2.9",
-    "update": "^0.7.4"
+    "update": "^0.7.4",
+    "winston": "^2.4.1"
   }
 }

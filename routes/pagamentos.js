@@ -1,6 +1,8 @@
+var logger = require('../services/logger.js');
+
 module.exports = function(app){
     app.get('/pagamentos',function(req, res){ //req -> request; res -> response
-        console.log('Recebida requisição de pagamentos na porta 3000.');
+        logger.info('Recebida requisição de pagamentos na porta 3000.');
         res.send('OK.');
     });
 
@@ -11,29 +13,29 @@ module.exports = function(app){
     //Listar
     app.get('/pagamentos/pagamento/:id', function(req, res){
         var id = req.params.id;
-        console.log('Consultando pagamento '+id);
+        logger.info('Consultando pagamento '+id);
 
         var memcachedClient = app.services.memcachedClient();
         memcachedClient.get('pagamento-'+id, function(err, ret){
             if(err || !ret){
-                console.log('MISS - chave não encontrada');
+                logger.warn('MISS - chave não encontrada');
                 var connection = app.persistence.connectionFactory();
                 var pagamentoDAO = new app.persistence.pagamentoDAO(connection);
 
                 pagamentoDAO.findById(id, function(erro, resultado){
                     if(erro){
-                        console.log("Erro ao consultar");
+                        logger.error("Erro ao consultar");
                         res.status(500).send(erro);
                         return;
                     }
-                    console.log('Pagamento encontrado: '+ JSON.stringify(resultado));
+                    logger.info('Pagamento encontrado: '+ JSON.stringify(resultado));
                     res.json(resultado);
                     return;
                 });
             }
             //ENCONTRADO NO CACHE
             else {
-                console.log('HIT - valor: ' + JSON.stringify(ret));
+                logger.info('HIT - valor: ' + JSON.stringify(ret));
                 res.json(ret);
                 return;
             }
@@ -102,19 +104,19 @@ module.exports = function(app){
         var errors = req.validationErrors();
 
         if (errors){
-            console.log("Erros de validação encontrados");
+            logger.error("Erros de validação encontrados");
             res.status(400).send(errors);
         }
 
         else{
 
-            console.log('Processando um novo pagamento...');
+            logger.info('Processando um novo pagamento...');
             
                     var connection = app.persistence.connectionFactory();
                     var pagamentoDAO = new app.persistence.pagamentoDAO(connection);
             
                     if(errors){
-                        console.log('Erro ao inserir no banco: ' + errors);
+                        logger.error('Erro ao inserir no banco: ' + errors);
                         res.status(500).send(errors);
                     } else {
 
@@ -122,17 +124,17 @@ module.exports = function(app){
                         pagamento.data = new Date;
                 
                         pagamentoDAO.save(pagamento, function(exception, result){
-                            console.log('Pagamento criado: ' + JSON.stringify(pagamento));
+                            logger.info('Pagamento criado: ' + JSON.stringify(pagamento));
 
                             var memcachedClient = app.services.memcachedClient();
                             memcachedClient.set('pagamento-'+result.insertId,pagamento, 60000, function(erro){
-                                console.log('Nova chave adicionada no cache: pagamento-'+pagamento.id)
+                                logger.info('Nova chave adicionada no cache: pagamento-'+pagamento.id)
                             });
 
 
                             if(pagamento.forma_de_pagamento == 'cartao'){
                                 var cartao = req.body["cartao"];
-                                console.log(cartao);
+                                logger.info(cartao);
 
                                 //A chamada tem que ser igual ao nome do arquivo
                                 var clienteCartoes = new app.services.clienteCartoes();
@@ -140,11 +142,11 @@ module.exports = function(app){
                                 clienteCartoes.autoriza(cartao,
                                     function(error, request, response, retorno){
                                       if(error){
-                                        console.log(error);
+                                        logger.error(error);
                                         res.status(400).send(error);
                                         return;
                                       }
-                                      console.log(retorno);
+                                      logger.info(retorno);
                         
                                       res.location('/pagamentos/pagamento/' + result.insertId);
                                       pagamento.id = result.insertId;
